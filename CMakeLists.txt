@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 add_executable(run.out
-    HashTable.cpp
+    Directory.cpp
+    Bucket.cpp
     main.cpp
     )

@@ -8,10 +8,13 @@ class Bucket {
      */
     public:
         // void find(std::string);
+        Bucket(int size, int depth);
         Bucket(int size);
         int insert(std::string key, std::string pseudoKey);
         bool isFull();
         int getDepth();
+        int remove(std::string);
+        void increaseDepth();
         std::map<std::string, std::string> map; // por enquanto vou deixar esse atributo como public pela comodidade; TODO: public method to access bucket's map
 
 

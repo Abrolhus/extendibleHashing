@@ -85,7 +85,8 @@ int Directory::splitBucket(std::string pos){
         std::cout << pairr3.first << ", ";
     }
     std::cout << std::endl;
-    changeBucketLink(pos, p_newBucket);
+    reorganizePointers(pos, p_oldBucket, p_newBucket);
+    // changeBucketLink(pos, p_newBucket);
     return 0;
 }
 
@@ -202,7 +203,7 @@ void Directory::printDirectory(){
 int Directory::getGlobalDepth(){
     return this->globalDepth;
 }
-void Directory::reorganizePointers(std::string pattern, std::string pos, Bucket* p_OldBucket, Bucket* p_NewBucket){
+void Directory::reorganizePointers(std::string pos, Bucket* p_OldBucket, Bucket* p_NewBucket){
     /* for instance,
      *  bucket with depth = 2
      *    0100xxx = 0101xxx = 0110xxx = 0111xxx ;
@@ -210,18 +211,27 @@ void Directory::reorganizePointers(std::string pattern, std::string pos, Bucket*
      *    0100xxx = 0101xxx ;
      *    0110xxx = 0111xxx ;
      */
+
     int newDepth = p_OldBucket->getDepth() + 1;
     int oldDepth = p_OldBucket->getDepth();
     std::string oldPattern = pos.substr(0, oldDepth) + '1';
     std::string newPattern = pos.substr(0, oldDepth) + '0';
     for(int i = 0; i < pow(2, this->getGlobalDepth() - newDepth); i++){
+        std::cout << i << ", " << std::endl;
         std::string binaryString = intToBinaryString(i);
+        std::string binStr = "" + binaryString;
         std::string missingZeros = "";
-        for(int j = 0; j < (this->getGlobalDepth() - newDepth) - binaryString.size(); i++){
+        std::cout << (this->getGlobalDepth() - newDepth) - binStr.length() << std::endl;
+        for(int j = 0; j < (this->getGlobalDepth() - newDepth) - binaryString.size(); j++){
             missingZeros += '0';
         }
-        std::string pos = newPattern + binaryString + missingZeros +
+        std::string posNew = newPattern + binaryString + missingZeros +
                           std::to_string(binaryString.size());
+        this->buckets.at(posNew) = p_NewBucket;
+
+        std::string posOld = oldPattern + binaryString + missingZeros +
+                          std::to_string(binaryString.size());
+        this->buckets.at(posOld) = p_OldBucket;
     }
 
 }

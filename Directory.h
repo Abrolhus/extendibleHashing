@@ -35,5 +35,6 @@ class Directory {
         void removeBucket(std::string pos);
         void addBucket(std::string pos);
         std::string intToBinaryString(unsigned long);
+        void reorganizePointers(std::string pos, Bucket* p_OldBucket, Bucket* p_NewBucket);
 };
 

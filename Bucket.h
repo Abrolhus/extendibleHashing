@@ -10,6 +10,7 @@ class Bucket {
         // void find(std::string);
         Bucket(int size, int depth);
         Bucket(int size);
+        Bucket(int size, int depth, int pseudoKeySize);
         int insert(std::string key, std::string pseudoKey);
         bool isFull();
         int getDepth();
@@ -21,6 +22,7 @@ class Bucket {
     private:
         int depth;
         int size;
+        int pseudoKeySize;
         int getCurrentSize();
 
 };

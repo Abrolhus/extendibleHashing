@@ -4,6 +4,11 @@ Bucket::Bucket(int size, int depth){
     this->size = size;
     this->depth = depth;
 }
+Bucket::Bucket(int size, int depth, int pseudoKeySize){
+    this->size = size;
+    this->depth = depth;
+    this->pseudoKeySize = pseudoKeySize;
+}
 Bucket::Bucket(int size){
     this->size = size;
     this->depth = 1;

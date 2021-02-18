@@ -63,7 +63,6 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length){
             std::cout << "not enough length" << std::endl;
             return keys;
       }
-      std::cout << size;
       int num;
       std::string str = ""; // string conversion
       for(int i = 0; i < size; i++){
@@ -84,8 +83,6 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length){
 std::vector<std::string> randomPseudoKeysGenerator(int n, int length, std::string prefix){
       std::vector<std::string> keys;
       std::vector<std::string> allPossibleStrings;
-      cout << n << endl;
-      cout << prefix.length() << endl;
       int size = pow(2, length - prefix.length()+1);
       if(length > 15){
             std::cout << "too large" << std::endl;
@@ -95,7 +92,6 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length, std::strin
             std::cout << "not enough length" << std::endl;
             return keys;
       }
-      std::cout << size;
       int num;
       std::string str = ""; // string conversion
       for(int i = 0; i < size; i++){
@@ -106,13 +102,11 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length, std::strin
       std::string aux;
       for(int i = 0; i < n; i++){
             index = rand()%(size - i) + i;
-            cout << index << ", " << endl;
             aux = allPossibleStrings[i];
             allPossibleStrings[i] = allPossibleStrings[index];
             keys.push_back(allPossibleStrings[i]);
             allPossibleStrings[index] = aux;
       }
-      cout << "foi " << endl;
       return keys;
 }
 std::string exampleHashFunction(std::string str){

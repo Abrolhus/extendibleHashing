@@ -51,7 +51,6 @@ int Directory::splitBucket(std::string pos){
         // std::cout << "Nao encontrado!" << std::endl;
         // return -1;
     // }
-    std::cout << "Spliting at pos: " << pos << std::endl;
     Bucket *p_oldBucket = this->buckets.at(pos); // copies bucket to oldBucket;
     Bucket *p_newBucket = new Bucket(this->getBucketSize(), p_oldBucket->getDepth());
     std::vector<std::string> pseudoKeysToRemove; // cant remove easilly during for loop;
@@ -62,7 +61,6 @@ int Directory::splitBucket(std::string pos){
         // std::string pattern = this->getNfirstBits(pos, -this->globalDepth + p_oldBucket->getDepth()) + pos.at(p_oldBucket->getDepth());
         std::string nBits = pseudoKey.substr(0, p_oldBucket->getDepth()+1);
         std::string pattern = pseudoKey.substr(0, p_oldBucket->getDepth()+0) + '0';
-        std::cout << "pattern: " << pattern << std::endl;
         if(nBits == pattern){
             p_newBucket->insert(value, pseudoKey);
             pseudoKeysToRemove.push_back(pseudoKey);
@@ -70,24 +68,11 @@ int Directory::splitBucket(std::string pos){
         }
     }
 
-    std::cout << "To remove: " << std::endl;
     for(auto pseudoKey : pseudoKeysToRemove){
-        std::cout << pseudoKey << ", ";
         p_oldBucket->remove(pseudoKey);
     }
-    std::cout << std::endl;
     p_oldBucket->increaseDepth();
     p_newBucket->increaseDepth();
-    std::cout << "newBucket: " << std::endl;
-    for(auto pairr2 : p_newBucket->map){
-        std::cout << pairr2.first << ", ";
-    }
-    std::cout << std::endl;
-    std::cout << "oldBucket: " << std::endl;
-    for(auto pairr3 : p_oldBucket->map){
-        std::cout << pairr3.first << ", ";
-    }
-    std::cout << std::endl;
     reorganizePointers(pos, p_oldBucket, p_newBucket);
     // changeBucketLink(pos, p_newBucket);
     return 0;
@@ -104,22 +89,10 @@ void Directory::duplicateDirectory(){
     for(auto pairr : copyBuckets){ // pairr ao inves de pair soh pra nao confundir a sintaxe da IDE
         std::string oldKey = pairr.first;
         Bucket* p_oldBucket = pairr.second;
-        // Bucket* p_newBucket = new Bucket(this->getBucketSize());
-        // for(auto bucketPairr : p_oldBucket->map){ // again, TODO: mark Bucket::map as private
-            // auto pseudoKey = bucketPairr.first; //str
-            // auto value = bucketPairr.second;
-            // if(getNfirstBits(pseudoKey) == getNfirstBits(pseudoKey, -1) + "1"){ //
-                // p_newBucket->insert(value, pseudoKey);
-                // p_oldBucket->remove(pseudoKey);
-            // }
-        // }
         this->buckets.insert({oldKey + '0', p_oldBucket}); // inserts both old and new bucket to the new corresponding positions
         this->buckets.insert({oldKey + '1', p_oldBucket}); // TODO: aumentar grau de abstracao
         this->removeBucket(oldKey);
-        std::cout << "duplicating " << oldKey << "-> " << oldKey + '0' << ", " << oldKey + '1' << std::endl;
-        // this->moveBucket(pos, pos + "0"); // moves bucket from e.g 1111 to 11110
     }
-    this->printDirectory();
 
 }
 void Directory::removeBucket(std::string pos){
@@ -134,7 +107,6 @@ int Directory::changeBucketLink(std::string pos, Bucket* p_newBucket){
 }
 
 std::string Directory::getNfirstBits(std::string pseudoKey){
-    // std::cout << "nFirstBits:" << pseudoKey.substr(0, this->globalDepth + 0) << std::endl;
     return pseudoKey.substr(0, this->globalDepth + 0);
 
 }
@@ -143,7 +115,6 @@ std::string Directory::getNfirstBits(std::string pseudoKey, int add){
 
 }
 int Directory::insert(std::string key, std::string pseudoKey){
-    std::cout << "inserindo " << pseudoKey << std::endl;
     std::string pos = this->getNfirstBits(pseudoKey); // just the "important" part of the pseudoKey, e.g.: if globalDepth==2: 101011-> 10, 00101010-> 00
     Bucket* bucket = this->buckets.at(pos); // for clarity
 
@@ -153,18 +124,13 @@ int Directory::insert(std::string key, std::string pseudoKey){
     }
     else{
         if(bucket->getDepth() < this->globalDepth){ // if bucket is full but depth is lower than globalDepth
-            std::cout << bucket->getDepth() << " < " << this->globalDepth << std::endl;
             this->splitBucket(pos);
-            std::cout << "bucket split" << std::endl;
-            this->printDirectory();
             this->insert(key, pseudoKey);
             return 0;
         }
         else {
             this->duplicateDirectory();
             this->splitBucket(this->getNfirstBits(pseudoKey)); // duplicateDirectory increases globalDepth, so getNfirstBits is called again
-            std::cout << "bucket split" << std::endl;
-            this->printDirectory();
             this->insert(key, pseudoKey);
         }
     }
@@ -245,15 +211,13 @@ void Directory::reorganizePointers(std::string pos, Bucket* p_OldBucket, Bucket*
     std::string newPattern = pos.substr(0, oldDepth) + '0';
     int afterPatternSize = this->getGlobalDepth() - newDepth;
     for(int i = 0; i < pow(2, afterPatternSize); i++){ // small loop if the pseudoKeys are well distributed
-        std::cout << "pos: " << pos << std::endl;
         std::string afterPattern = intToBinString(i, afterPatternSize);
         std::string posNew = newPattern + afterPattern;
         std::string posOld = oldPattern + afterPattern;
-        std::cout << "posOld:" <<  posOld << ", posNew:" << posNew << std::endl;
         this->buckets.at(posNew) = p_NewBucket;
         this->buckets.at(posOld) = p_OldBucket;
     }
 }
 float Directory::getFatorDeCarga(){
-    return this->getRealNumOfBuckets()/this->buckets.size();
+    return this->getRealNumOfBuckets()/(float)this->buckets.size();
 }

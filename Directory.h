@@ -14,8 +14,11 @@ class Directory {
     public:
         Directory(int bucketSize);
         Directory(int bucketSize, int pseudoKeySize);
+        bool find(std::string value);
         int insert(std::string key, std::string pseudoKey);
         bool findPseudoKey(std::string);
+        int getRealNumOfBuckets();
+        float getFatorDeCarga();
         void duplicateDirectory();
         int splitBucket(std::string pos);
         int getBucketSize();

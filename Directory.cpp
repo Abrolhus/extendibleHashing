@@ -1,6 +1,9 @@
 #include "Directory.h"
+#include "binStrings.h"
 #include <bitset>
 #include <math.h>
+
+// colored couts
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
@@ -168,6 +171,29 @@ int Directory::insert(std::string key, std::string pseudoKey){
 
     return 0;
 }
+bool Directory::findPseudoKey(std::string pseudoKey){
+    std::string pos = this->getNfirstBits(pseudoKey); // just the "important" part of the pseudoKey, e.g.: if globalDepth==2: 101011-> 10, 00101010-> 00
+    // if(this->buckets.find(pos) != this->buckets.end()){
+    auto p_Bucket = this->buckets.at(pos);
+    if(p_Bucket->findPseudoKey(pseudoKey)){
+        return true;
+    }
+    return false;
+}
+int Directory::getRealNumOfBuckets(){
+  int numBuckets = 0;
+  Bucket *p_OldBucket;
+  for (auto pairr : this->buckets) {
+    if (pairr.second == p_OldBucket) {
+      continue;
+    }
+    numBuckets++;
+    p_OldBucket = pairr.second;
+    }
+    return numBuckets;
+}
+
+
 void Directory::addBucket(std::string pos){
     this->buckets.insert({pos, new Bucket(this->getBucketSize(), 1, this->pseudoKeySize)}); // std::map insert
 }
@@ -204,7 +230,8 @@ int Directory::getGlobalDepth(){
     return this->globalDepth;
 }
 void Directory::reorganizePointers(std::string pos, Bucket* p_OldBucket, Bucket* p_NewBucket){
-    /* for instance,
+    /* reorganize directory pointers (buckets) after spliting a bucket
+     * for instance,
      *  bucket with depth = 2
      *    0100xxx = 0101xxx = 0110xxx = 0111xxx ;
      *    you are willing to redistribute its keys to 2 buckets (itself and a brand new one) with depth = 3;
@@ -212,73 +239,21 @@ void Directory::reorganizePointers(std::string pos, Bucket* p_OldBucket, Bucket*
      *    0110xxx = 0111xxx ;
      */
 
-    int newDepth = p_OldBucket->getDepth() + 1;
-    int oldDepth = p_OldBucket->getDepth();
+    int oldDepth = p_OldBucket->getDepth() - 1;
+    int newDepth = p_OldBucket->getDepth();
     std::string oldPattern = pos.substr(0, oldDepth) + '1';
     std::string newPattern = pos.substr(0, oldDepth) + '0';
-    for(int i = 0; i < pow(2, this->getGlobalDepth() - newDepth); i++){
-        std::cout << i << ", " << std::endl;
-        std::string binaryString = intToBinaryString(i);
-        std::string binStr = "" + binaryString;
-        std::string missingZeros = "";
-        std::cout << (this->getGlobalDepth() - newDepth) - binStr.length() << std::endl;
-        for(int j = 0; j < (this->getGlobalDepth() - newDepth) - binaryString.size(); j++){
-            missingZeros += '0';
-        }
-        std::string posNew = newPattern + binaryString + missingZeros +
-                          std::to_string(binaryString.size());
+    int afterPatternSize = this->getGlobalDepth() - newDepth;
+    for(int i = 0; i < pow(2, afterPatternSize); i++){ // small loop if the pseudoKeys are well distributed
+        std::cout << "pos: " << pos << std::endl;
+        std::string afterPattern = intToBinString(i, afterPatternSize);
+        std::string posNew = newPattern + afterPattern;
+        std::string posOld = oldPattern + afterPattern;
+        std::cout << "posOld:" <<  posOld << ", posNew:" << posNew << std::endl;
         this->buckets.at(posNew) = p_NewBucket;
-
-        std::string posOld = oldPattern + binaryString + missingZeros +
-                          std::to_string(binaryString.size());
         this->buckets.at(posOld) = p_OldBucket;
     }
-
 }
-std::string Directory::intToBinaryString( unsigned long n )
-{
-
-      /*
-      * Create char array of size = 32+1
-      * (1 for null terminated string) =33 to
-      * accommodate 32 byte chars as unsigned long range
-      *  0 to 4,294,967,295 can be accommodated int to it
-      *
-      * Size of unsigned long is 4 bytes, hence for
-      * 32 byte char array, we need to multiply by 8
-      */
-
-      char     bArray[ (sizeof( unsigned long ) * 8) + 1 ];
-
-      //index = 32 to fetch each 32 slots
-      unsigned index  = sizeof( unsigned long ) * 8;
-
-      char temp =0;
-      bArray[ index ] = '\0';
-
-      do{
-
-            //bArary[ --index ] = '0' + (n & 1);
-
-            //Breaking above line to understand better.
-            temp = (n & 1); // Finding 0 or 1 in LSB
-            // Adding ASCII 0 to convert Binary to ASCII
-            temp = temp + '0';
-
-            // Copying final ASCII equivalent BIT value (0 or 1)
-            bArray[ --index ] = temp;
-
-            //In while expression :n >>= 1 or equivalent to it is n =n>>1
-            //can be used. Shifting the Value to RIGHT by one
-            //to check the NEXT LSB bit.
-            //Exits when n becomes ZERO.
-
-      }while (n >>= 1);
-
-      //bArray contains base address. So, jump to
-      //base address + current index to fetch
-      //the binary representation.
-
-
-      return std::string( bArray + index );
+float Directory::getFatorDeCarga(){
+    return this->getRealNumOfBuckets()/this->buckets.size();
 }

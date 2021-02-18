@@ -12,6 +12,8 @@ class Bucket {
         Bucket(int size);
         Bucket(int size, int depth, int pseudoKeySize);
         int insert(std::string key, std::string pseudoKey);
+        bool findPseudoKey(std::string pseudoKey);
+        // bool find(std::string);
         bool isFull();
         int getDepth();
         int remove(std::string);

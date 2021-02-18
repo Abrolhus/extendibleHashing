@@ -41,3 +41,9 @@ int Bucket::insert(std::string value, std::string pseudoKey){
     this->map.insert({pseudoKey, value});
     return 0;
 }
+bool Bucket::findPseudoKey(std::string pseudoKey){
+    if(this->map.find(pseudoKey) != this->map.end()){
+        return true;
+    }
+    return false;
+}

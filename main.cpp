@@ -1,4 +1,8 @@
 #include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <ios>
+#include "binStrings.h"
 #include <stdlib.h>
 #include <math.h>
 #include "Directory.h"
@@ -34,20 +38,9 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length){
       int num;
       std::string str = ""; // string conversion
       for(int i = 0; i < size; i++){
-            // std::string bits =  std::bitset< 10 >(i).to_string();
-            std::string bits = intToBinaryString(i);
-            // std::cout << bits.length();
-            std::string str0 = "";
-            for(int j = 0; j < length - bits.length(); j++){
-                  str0 += '0';
-            }
-            str = str0 + bits;
-            allPossibleStrings.push_back(str);
+            std::string bits = intToBinString(i, length);
+            allPossibleStrings.push_back(bits);
       }
-      std::cout << "allPossibleStrings" << std::endl;
-      // for(auto c : allPossibleStrings){
-            // std::cout << " " + c;
-      // }
       int index;
       std::string aux;
       for(int i = 0; i < n; i++){
@@ -57,9 +50,6 @@ std::vector<std::string> randomPseudoKeysGenerator(int n, int length){
             keys.push_back(allPossibleStrings[i]);
             allPossibleStrings[index] = aux;
       }
-      // for(auto str : keys){
-            // std::cout << str << std::endl;
-      // }
       return keys;
 }
 std::string hashFunction(std::string str){
@@ -67,75 +57,62 @@ std::string hashFunction(std::string str){
 }
 int main(int argc, const char** argv){
 
-      string intToBinaryString( unsigned long n );
-      srand(time(nullptr));
-      int bucketSize;
-      int pseudoKeySize;
-      cout << "bucketSize: ";
-      cin >> bucketSize;
-      cout << "pseudoKeySize: ";
-      cin >> pseudoKeySize;
+    void mem_usage(double& vm_usage, double& resident_set);
+    string intToBinaryString( unsigned long n );
+    srand(time(nullptr));
+    int bucketSize;
+    int pseudoKeySize;
+    double vm, rss;
+    cout << "bucketSize: ";
+    cin >> bucketSize;
+    cout << "pseudoKeySize: ";
+    cin >> pseudoKeySize;
+    cout << intToBinString(37, 8) << endl;
+    mem_usage(vm, rss);
+    cout << "Virtual Memory: " << vm << "\nResident set size: " << rss << endl;
 
-    Directory* dir = new Directory(bucketSize, pseudoKeySize);
+    Directory dir = Directory(bucketSize, pseudoKeySize);
     // vector<string> nomes {"Paula", "Joao", "Carlos", "Jefferson", "Rafael", "Marcos", "Janette"};
-    vector<string> pseudoKeys = randomPseudoKeysGenerator(100, pseudoKeySize);
-      std::string bits =  std::bitset< 8 >(14).to_string();
+    vector<string>* pseudoKeys = new vector<std::string>;
+    *pseudoKeys = randomPseudoKeysGenerator(100, pseudoKeySize);
     // std::string bits = intToBinaryString(153);
-    for(auto psdkey : pseudoKeys){
+    for(auto psdkey : *pseudoKeys){
           cout << psdkey << ", ";
     }
     cout << endl;
-    for(auto nome : pseudoKeys){
-        dir->insert(nome, nome);
+    for(auto nome : *pseudoKeys){
+        dir.insert(nome, nome);
     }
-    dir->printDirectory();
+    dir.printDirectory();
+    delete pseudoKeys;
+    mem_usage(vm, rss);
+    cout << "Virtual Memory: " << vm << "\nResident set size: " << rss << endl;
+    size_t memDir = sizeof dir;
+    cout
+
+    int aux;
+    cout << "Paused ";
+    cin >> aux;
 
     return 0;
 }
-string intToBinaryString( unsigned long n )
-{
-
-      /*
-      * Create char array of size = 32+1
-      * (1 for null terminated string) =33 to
-      * accommodate 32 byte chars as unsigned long range
-      *  0 to 4,294,967,295 can be accommodated int to it
-      *
-      * Size of unsigned long is 4 bytes, hence for
-      * 32 byte char array, we need to multiply by 8
-      */
-
-      char     bArray[ (sizeof( unsigned long ) * 8) + 1 ];
-
-      //index = 32 to fetch each 32 slots
-      unsigned index  = sizeof( unsigned long ) * 8;
-
-      char temp =0;
-      bArray[ index ] = '\0';
-
-      do{
-
-            //bArary[ --index ] = '0' + (n & 1);
-
-            //Breaking above line to understand better.
-            temp = (n & 1); // Finding 0 or 1 in LSB
-            // Adding ASCII 0 to convert Binary to ASCII
-            temp = temp + '0';
-
-            // Copying final ASCII equivalent BIT value (0 or 1)
-            bArray[ --index ] = temp;
-
-            //In while expression :n >>= 1 or equivalent to it is n =n>>1
-            //can be used. Shifting the Value to RIGHT by one
-            //to check the NEXT LSB bit.
-            //Exits when n becomes ZERO.
-
-      }while (n >>= 1);
-
-      //bArray contains base address. So, jump to
-      //base address + current index to fetch
-      //the binary representation.
-
-
-      return string( bArray + index );
+void mem_usage(double& vm_usage, double& resident_set) {
+   vm_usage = 0.0;
+   resident_set = 0.0;
+   ifstream stat_stream("/proc/self/stat",ios_base::in); //get info from proc
+   //create some variables to get info
+   string pid, comm, state, ppid, pgrp, session, tty_nr;
+   string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+   string utime, stime, cutime, cstime, priority, nice;
+   string O, itrealvalue, starttime;
+   unsigned long vsize;
+   long rss;
+   stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+   >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+   >> utime >> stime >> cutime >> cstime >> priority >> nice
+   >> O >> itrealvalue >> starttime >> vsize >> rss; // don't care about the rest
+   stat_stream.close();
+   long page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024; // for x86-64 is configured to use 2MB pages
+   vm_usage = vsize / 1024.0;
+   resident_set = rss * page_size_kb;
 }
